@@ -1,40 +1,29 @@
 import io
 import os
+import sys
 
-
-# [START vision_localize_objects]
-def localize_objects(path):
-    """Localize objects in the local image.
-    Args:
-    path: The path to the local file.
-    """
-    from google.cloud import vision
-    client = vision.ImageAnnotatorClient()
-
-    with open(path, 'rb') as image_file:
-        content = image_file.read()
-    image = vision.Image(content=content)
-
-    objects = client.object_localization(
-        image=image).localized_object_annotations
-
-    print('Number of objects found: {}'.format(len(objects)))
-    for object_ in objects:
-        print('\n{} (confidence: {})'.format(object_.name, object_.score))
-        print('Normalized bounding polygon vertices: ')
-        for vertex in object_.bounding_poly.normalized_vertices:
-            print(' - ({}, {})'.format(vertex.x, vertex.y))
-# [END vision_localize_objects]
+from detect import localize_objects
 
 
 
 if __name__ == "__main__":
 
     # File directory
-    path = os.path.abspath('resources/wakeupcat.jpg')
+    image_file = "original.png"
+    path = os.path.abspath('resources/%s' % image_file)
 
-    # Calls Google API to return a response with object confidence rate and their coordinates
-    localize_objects(path)
+    # path to write and store coordinates of detected objects in img
+    coord_path = os.path.abspath('coordinates/%s' % image_file + 'coordinate.txt')
+
+    original_stdout = sys.stdout
+    # Write object coordinates into a text file
+    with open(coord_path, 'w') as f:
+        sys.stdout = f
+        # Calls Google API to return a response with object confidence rate and their coordinates
+        localize_objects(path)
+        sys.stdout = original_stdout
+        f.close()
+
 
     # TODO: Call a library to create a copy of the image and using the JSON response draw onto new image the detected object
 
